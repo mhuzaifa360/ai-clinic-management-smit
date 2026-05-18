@@ -1,1 +1,1 @@
-# ai-clinic-management-smit
+# navttac-final-exam
