@@ -1,0 +1,1 @@
+# ai-clinic-management-smit
