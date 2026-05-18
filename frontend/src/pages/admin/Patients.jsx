@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AdminLayout from "../../layouts/AdminLayout";
+import AdminLayout from "../../components/layouts/AdminLayout";
 
 import DataTable from "../../components/tables/DataTable";
 import Modal from "../../components/modals/Modal";

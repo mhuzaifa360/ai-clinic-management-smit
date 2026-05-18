@@ -1,11 +1,19 @@
-import React from 'react'
+import Home from "./pages/Home";
+import Dashboard from "./pages/admin/Dashboard";
+import Patients from "./pages/admin/Patients";
 
+// simple temporary switch (baad me router lagayenge)
 function App() {
   return (
     <div>
-      <h1 className='bg-blue-400'>hi</h1>
+      {/* HOME PAGE */}
+      <Home />
+
+      {/* TEST (optional) */}
+      {/* <Dashboard /> */}
+      {/* <Patients /> */}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
