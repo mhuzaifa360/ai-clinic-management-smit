@@ -1,139 +1,181 @@
 import { useState } from "react";
-import Typography from "../common/Typography";
-import Button from "../common/Button";
+import AdminLayout from "../../layouts/AdminLayout";
 
-const DataTable = ({
-  columns = [],
-  data = [],
-  onEdit,
-  onDelete,
-}) => {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+import DataTable from "../../components/tables/DataTable";
+import Modal from "../../components/modals/Modal";
+import Input from "../../components/forms/Input";
+import Button from "../../components/common/Button";
 
-  const rowsPerPage = 5;
+const Patients = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // FILTER DATA (SEARCH)
-  const filteredData = data.filter((item) =>
-    Object.values(item)
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    age: "",
+    gender: "",
+  });
 
-  // PAGINATION LOGIC
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const [editingIndex, setEditingIndex] = useState(null);
 
-  const paginatedData = filteredData.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  // TABLE COLUMNS (same as old logic)
+  const columns = [
+    { header: "First Name", accessor: "firstName" },
+    { header: "Last Name", accessor: "lastName" },
+    { header: "Age", accessor: "age" },
+    { header: "Gender", accessor: "gender" },
+  ];
+
+  // SAMPLE DATA (old + simple)
+  const [data, setData] = useState([
+    { firstName: "Ali", lastName: "Khan", age: 25, gender: "male" },
+    { firstName: "Sara", lastName: "Ahmed", age: 30, gender: "female" },
+  ]);
+
+  // OPEN ADD MODAL
+  const handleAdd = () => {
+    setForm({
+      firstName: "",
+      lastName: "",
+      age: "",
+      gender: "",
+    });
+    setEditingIndex(null);
+    setIsModalOpen(true);
+  };
+
+  // EDIT
+  const handleEdit = (row, index) => {
+    setForm(row);
+    setEditingIndex(index);
+    setIsModalOpen(true);
+  };
+
+  // DELETE
+  const handleDelete = (index) => {
+    const updated = data.filter((_, i) => i !== index);
+    setData(updated);
+  };
+
+  // FORM CHANGE
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // SAVE (ADD + UPDATE)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (editingIndex !== null) {
+      // UPDATE
+      const updated = [...data];
+      updated[editingIndex] = form;
+      setData(updated);
+    } else {
+      // ADD
+      setData([...data, form]);
+    }
+
+    setIsModalOpen(false);
+  };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
+    <AdminLayout>
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
 
-        <Typography variant="h2">
-          Records
-        </Typography>
-
-        <input
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="px-3 py-2 border rounded-lg 
-          bg-white dark:bg-gray-700 
-          text-gray-800 dark:text-white"
-        />
-      </div>
-
-      {/* TABLE */}
-      <table className="w-full text-left">
-
-        <thead>
-          <tr className="border-b dark:border-gray-700">
-            {columns.map((col, i) => (
-              <th
-                key={i}
-                className="p-2 text-gray-600 dark:text-gray-300"
-              >
-                {col.header}
-              </th>
-            ))}
-            <th className="p-2 text-gray-600 dark:text-gray-300">
-              Actions
-            </th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {paginatedData.map((row, i) => (
-            <tr key={i} className="border-b dark:border-gray-700">
-
-              {columns.map((col, j) => (
-                <td
-                  key={j}
-                  className="p-2 text-gray-800 dark:text-white"
-                >
-                  {row[col.accessor]}
-                </td>
-              ))}
-
-              {/* ACTIONS */}
-              <td className="p-2 flex gap-2">
-
-                <Button
-                  variant="secondary"
-                  onClick={() => onEdit(row)}
-                >
-                  Edit
-                </Button>
-
-                <Button
-                  variant="danger"
-                  onClick={() => onDelete(row)}
-                >
-                  Delete
-                </Button>
-
-              </td>
-
-            </tr>
-          ))}
-        </tbody>
-
-      </table>
-
-      {/* PAGINATION */}
-      <div className="flex justify-between items-center mt-4">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          Patients
+        </h2>
 
         <Button
-          variant="secondary"
-          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          variant="primary"
+          onClick={handleAdd}
         >
-          Prev
-        </Button>
-
-        <Typography variant="small">
-          Page {page} of {totalPages || 1}
-        </Typography>
-
-        <Button
-          variant="secondary"
-          onClick={() =>
-            setPage((p) => Math.min(p + 1, totalPages))
-          }
-        >
-          Next
+          + Add Patient
         </Button>
 
       </div>
 
-    </div>
+      {/* TABLE (UPDATED DATA TABLE SYSTEM) */}
+      <DataTable
+        columns={columns}
+        data={data}
+        onEdit={(row) => {
+          const index = data.findIndex(
+            (item) => item.firstName === row.firstName
+          );
+          handleEdit(row, index);
+        }}
+        onDelete={(row) => {
+          const index = data.findIndex(
+            (item) => item.firstName === row.firstName
+          );
+          handleDelete(index);
+        }}
+      />
+
+      {/* MODAL */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingIndex !== null ? "Edit Patient" : "Add Patient"}
+      >
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+
+          <Input
+            label="First Name"
+            name="firstName"
+            value={form.firstName}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Last Name"
+            name="lastName"
+            value={form.lastName}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Age"
+            name="age"
+            value={form.age}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Gender"
+            name="gender"
+            value={form.gender}
+            onChange={handleChange}
+          />
+
+          {/* ACTIONS */}
+          <div className="flex justify-end gap-2 mt-3">
+
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button variant="primary" type="submit">
+              {editingIndex !== null ? "Update" : "Save"}
+            </Button>
+
+          </div>
+
+        </form>
+
+      </Modal>
+
+    </AdminLayout>
   );
 };
 
-export default DataTable;
+export default Patients;
